@@ -61,6 +61,9 @@ databricks-medallion-pipeline/
 ├── config/
 │   ├── pipeline_config.yaml        # table paths, schema, thresholds
 │   └── databricks_job.yaml         # Databricks Workflows job definition
+├── data/
+│   └── raw/
+│       └── sales_raw.csv           # committed sample dataset (5,000 rows, seeded)
 ├── src/
 │   ├── bronze_ingestion.py         # Raw ingestion into Bronze Delta tables
 │   ├── silver_transformation.py    # Cleansing, dedup, standardization
@@ -91,8 +94,10 @@ python src/gold_aggregation.py
 python src/data_quality_checks.py
 ```
 
-Sample source data is generated automatically on first run under `./data/raw/` so the pipeline
-is runnable end-to-end with no external setup.
+A sample dataset (5,000 synthetic sales records, seeded for reproducibility) is committed at
+`data/raw/sales_raw.csv`, so the pipeline is runnable end-to-end with no external setup and the
+numbers in `docs/sample_run_output.md` are reproducible exactly as shown. If you delete that file,
+`bronze_ingestion.py` will regenerate an equivalent dataset automatically on the next run.
 
 ## How to run this on Databricks
 
@@ -109,12 +114,14 @@ is runnable end-to-end with no external setup.
 1. `git init`, commit this folder, and push it to a new **public** GitHub repo
    (e.g. `databricks-medallion-pipeline`).
 2. Update the `LICENSE` author line and the contact details in this README if you want your name on it.
-3. (Optional) Replace the synthetic sample data generator in `bronze_ingestion.py` with a real
-   public dataset (e.g., a Kaggle retail/sales dataset) so the numbers in `docs/sample_run_output.md`
-   reflect a real run.
+3. (Optional) Replace `data/raw/sales_raw.csv` with a real public dataset (e.g., a Kaggle
+   retail/sales dataset) so the numbers in `docs/sample_run_output.md` reflect a real run —
+   just keep the same column names, or update `bronze_ingestion.py`/`silver_transformation.py`
+   to match your new schema.
 4. (Optional) Take 2–3 screenshots of the Databricks job DAG succeeding and the Gold table
    results, and add them to `docs/` — this is the single most convincing thing to link from your resume.
 5. Add the GitHub URL to your resume under this project's title.
 
 ---
 *Built as a portfolio project to demonstrate Databricks Lakehouse / Medallion Architecture patterns.*
+
