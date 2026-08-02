@@ -1,0 +1,26 @@
+# Central config for the medallion pipeline.
+# On Databricks, replace these paths with Unity Catalog volume / managed table paths,
+# e.g. /Volumes/main/sales/raw or catalog.schema.table for tables.
+
+catalog: "main"
+schema: "sales_analytics"
+
+paths:
+  raw_source: "./data/raw/sales_raw.csv"
+  bronze: "./data/delta/bronze/sales"
+  silver: "./data/delta/silver/sales"
+  gold_revenue_by_region: "./data/delta/gold/revenue_by_region"
+  gold_revenue_by_product: "./data/delta/gold/revenue_by_product"
+
+data_quality:
+  null_check_columns:
+    - order_id
+    - customer_id
+    - order_date
+    - amount
+  duplicate_check_key: "order_id"
+  row_count_tolerance_pct: 0.0   # bronze -> silver row count must reconcile exactly after DQ drops
+
+optimize:
+  zorder_columns_gold: ["region", "order_date"]
+  partition_column_silver: "order_year"

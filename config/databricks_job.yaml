@@ -1,0 +1,62 @@
+# Databricks Workflows job definition for the Bronze -> Silver -> Gold DAG.
+# Import via: Workflows -> Jobs -> Create Job -> "Import from YAML" (or recreate the tasks
+# manually if your workspace doesn't support YAML import; the structure below still serves
+# as the spec).
+
+name: medallion-pipeline-sales-analytics
+
+tasks:
+  - task_key: bronze_ingestion
+    notebook_task:
+      notebook_path: /Repos/<your-repo>/databricks-medallion-pipeline/src/bronze_ingestion
+    new_cluster:
+      spark_version: "15.4.x-scala2.12"
+      node_type_id: "Standard_DS3_v2"
+      num_workers: 1
+    max_retries: 2
+    timeout_seconds: 1800
+
+  - task_key: silver_transformation
+    depends_on:
+      - task_key: bronze_ingestion
+    notebook_task:
+      notebook_path: /Repos/<your-repo>/databricks-medallion-pipeline/src/silver_transformation
+    new_cluster:
+      spark_version: "15.4.x-scala2.12"
+      node_type_id: "Standard_DS3_v2"
+      num_workers: 1
+    max_retries: 2
+    timeout_seconds: 1800
+
+  - task_key: data_quality_checks
+    depends_on:
+      - task_key: silver_transformation
+    notebook_task:
+      notebook_path: /Repos/<your-repo>/databricks-medallion-pipeline/src/data_quality_checks
+    new_cluster:
+      spark_version: "15.4.x-scala2.12"
+      node_type_id: "Standard_DS3_v2"
+      num_workers: 1
+    max_retries: 1
+    timeout_seconds: 900
+
+  - task_key: gold_aggregation
+    depends_on:
+      - task_key: data_quality_checks
+    notebook_task:
+      notebook_path: /Repos/<your-repo>/databricks-medallion-pipeline/src/gold_aggregation
+    new_cluster:
+      spark_version: "15.4.x-scala2.12"
+      node_type_id: "Standard_DS3_v2"
+      num_workers: 1
+    max_retries: 2
+    timeout_seconds: 1800
+
+email_notifications:
+  on_failure:
+    - "<your-email>@example.com"
+
+schedule:
+  quartz_cron_expression: "0 0 6 * * ?"   # daily at 06:00
+  timezone_id: "Asia/Kolkata"
+  pause_status: "PAUSED"   # flip to UNPAUSED once verified
